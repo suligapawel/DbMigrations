@@ -1,5 +1,6 @@
 using System.Data;
 using System.Reflection;
+using Dapper;
 using DbMigrations.Providers;
 using DbMigrations.Settings;
 using Microsoft.AspNetCore.Builder;
@@ -33,9 +34,10 @@ public static class DependencyInjection
     public static async Task<IApplicationBuilder> UseDbMigrations(this IApplicationBuilder app)
     {
         var dbProvider = app.ApplicationServices.GetService<IDbProvider>();
+        var dbConnection = app.ApplicationServices.GetService<IDbConnection>();
         var migrations = app.ApplicationServices.GetServices<IMigration>();
         await dbProvider.CreateMigrationsTableIfDoesNotExist();
-        
+
         foreach (var migration in migrations)
         {
             var migrationName = migration.GetType().Name;
@@ -44,8 +46,8 @@ public static class DependencyInjection
             {
                 continue;
             }
-            
-            await migration.Up();
+
+            await dbConnection.ExecuteAsync(migration.UpScript());
             await dbProvider.InsertMigrationInfo(migrationName);
         }
 

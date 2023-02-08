@@ -46,8 +46,11 @@ public class MssqlProvider : IDbProvider
     public async Task<bool> MigrationExist(string migrationName)
     {
         var query = $@"
-				SELECT TOP(1) 1 FROM {TableNameWithSchema}
-				WHERE Name = '{migrationName}'";
+				IF EXISTS
+					(SELECT TOP(1) 1 FROM {TableNameWithSchema}
+					WHERE Name = '{migrationName}')
+				BEGIN SELECT 1 END
+				ELSE BEGIN SELECT 0 END";
 
         return await _dbConnectionProvider.QueryFirstAsync<bool>(query);
     }

@@ -2,6 +2,6 @@
 
 public interface IMigration
 {
-    Task Up();
-    Task Down();
+    string UpScript();
+    string DownScript();
 }
