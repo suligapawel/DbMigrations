@@ -6,16 +6,16 @@ namespace DbMigrations.Providers;
 
 public class MssqlProvider : IDbProvider
 {
-    private readonly IDbConnection _dbConnection;
     private readonly DbSettings _settings;
+    private readonly IDbConnection _dbConnectionProvider;
 
     public MssqlProvider(IDbConnection dbConnection, DbSettings settings)
     {
-        _dbConnection = dbConnection;
+        _dbConnectionProvider = dbConnection;
         _settings = settings;
     }
 
-    public async Task CreateMigrationsTable()
+    public async Task CreateMigrationsTableIfDoesNotExist()
     {
 	    var query = $@"
 				IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{_settings.TableName}' AND TABLE_SCHEMA = 'dbo')
@@ -28,6 +28,6 @@ public class MssqlProvider : IDbProvider
 					)
 				END";
 	    
-        await _dbConnection.ExecuteAsync(query);
+        await _dbConnectionProvider.ExecuteAsync(query);
     }
 }

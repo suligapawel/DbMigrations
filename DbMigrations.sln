@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbMigrations", "DbMigrations\DbMigrations.csproj", "{613D364B-A207-4297-94EE-4593AB8B9831}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbMigrations.Tests", "DbMigrations.Tests\DbMigrations.Tests.csproj", "{C8AA19F7-9FB7-4BFD-9F15-261A7430D347}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{613D364B-A207-4297-94EE-4593AB8B9831}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{613D364B-A207-4297-94EE-4593AB8B9831}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{613D364B-A207-4297-94EE-4593AB8B9831}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8AA19F7-9FB7-4BFD-9F15-261A7430D347}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8AA19F7-9FB7-4BFD-9F15-261A7430D347}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8AA19F7-9FB7-4BFD-9F15-261A7430D347}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8AA19F7-9FB7-4BFD-9F15-261A7430D347}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

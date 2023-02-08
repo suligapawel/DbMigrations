@@ -2,5 +2,5 @@ namespace DbMigrations.Providers;
 
 public interface IDbProvider
 {
-    Task CreateMigrationsTable();
+    Task CreateMigrationsTableIfDoesNotExist();
 }
