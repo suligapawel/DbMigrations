@@ -15,16 +15,16 @@ namespace DbMigrations.Tests;
 public class DependencyInjectionTests
 {
     [Fact]
-    public async Task Should_create_new_database_if_it_does_not_exist()
+    public async Task Should_create_new_database_with_migrations_table_if_it_does_not_exist()
     {
-        const string tableName = "testTableName";
-        var dbConnection = await PrepareConnection(tableName);
+        const string migrationsTableName = "__MigrationsTests";
+        var dbConnection = await PrepareConnection(migrationsTableName);
 
         var result = await dbConnection.QueryFirstAsync<bool>(
             $@"IF EXISTS
-                    (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{tableName}' AND TABLE_SCHEMA = 'dbo')
+                    (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{migrationsTableName}' AND TABLE_SCHEMA = 'dbo')
                 BEGIN 
-                    DROP TABLE dbo.{tableName};
+                    DROP TABLE dbo.{migrationsTableName};
 	                SELECT 1;
                 END;");
 
@@ -34,16 +34,16 @@ public class DependencyInjectionTests
     [Fact]
     public async Task Should_migrate_scripts()
     {
-        const string tableName = "testTableName";
+        const string migrationsTableName = "__MigrationsTests";
         var testDbMigration = new TestMigration();
-        var dbConnection = await PrepareConnection(tableName);
+        var dbConnection = await PrepareConnection(migrationsTableName);
 
         var result = await dbConnection.QueryFirstAsync<bool>(
-            $@"DROP TABLE dbo.{tableName};
+            $@"DROP TABLE dbo.{migrationsTableName};
                 IF EXISTS
                     (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{TestMigration.TableName}' AND TABLE_SCHEMA = 'dbo')
                 BEGIN 
-                    {testDbMigration.DownScript()};
+                    {testDbMigration.Down()};
 	                SELECT 1;
                 END;");
 

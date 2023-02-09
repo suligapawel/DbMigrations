@@ -20,12 +20,12 @@ public class MssqlProvider : IDbProvider
     public async Task CreateMigrationsTableIfDoesNotExist()
     {
         var query = $@"
-				IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{_settings.TableName}' AND TABLE_SCHEMA = 'dbo')
+				IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{_settings.TableName}' AND TABLE_SCHEMA = '{_settings.Schema}')
 				BEGIN 
 					CREATE TABLE {TableNameWithSchema}
 					(
 						[Id] [int] IDENTITY(1,1) PRIMARY KEY NOT NULL,
-						[CreatedAt] [datetime2](3) NOT NULL CONSTRAINT DF___Migrations_CreatedAt DEFAULT GETDATE(),
+						[CreatedAt] [datetime2](3) NOT NULL,
 						[Name] [varchar](100) NOT NULL UNIQUE
 					)
 				END";
@@ -33,25 +33,50 @@ public class MssqlProvider : IDbProvider
         await _dbConnectionProvider.ExecuteAsync(query);
     }
 
-    public async Task InsertMigrationInfo(string migrationName)
+    public async Task InsertMigrationIfDoesNotExist(IMigration migration)
     {
-        var query = $@"
+        var addMigrationQuery = $@"
 				INSERT INTO {TableNameWithSchema}
-				(Name)
-				VALUES ('{migrationName}')";
+				(Name, CreatedAt)
+				VALUES ('{GetMigrationName(migration)}','{migration.CreatedAt:s}')";
 
-        await _dbConnectionProvider.ExecuteAsync(query);
+        _dbConnectionProvider.Open();
+        using var transaction = _dbConnectionProvider.BeginTransaction();
+
+        try
+        {
+            if (await MigrationExist(migration, transaction))
+            {
+                return;
+            }
+
+            await _dbConnectionProvider.ExecuteAsync(migration.Up(), transaction: transaction);
+            await _dbConnectionProvider.ExecuteAsync(addMigrationQuery, transaction: transaction);
+
+            transaction.Commit();
+        }
+        catch
+        {
+            transaction.Rollback();
+        }
+        finally
+        {
+            _dbConnectionProvider.Close();
+        }
     }
 
-    public async Task<bool> MigrationExist(string migrationName)
+    private async Task<bool> MigrationExist(IMigration migration, IDbTransaction transaction)
     {
         var query = $@"
 				IF EXISTS
 					(SELECT TOP(1) 1 FROM {TableNameWithSchema}
-					WHERE Name = '{migrationName}')
+					WHERE Name = '{GetMigrationName(migration)}')
 				BEGIN SELECT 1 END
 				ELSE BEGIN SELECT 0 END";
 
-        return await _dbConnectionProvider.QueryFirstAsync<bool>(query);
+        return await _dbConnectionProvider.QueryFirstAsync<bool>(query, transaction: transaction);
     }
+
+    private static string GetMigrationName(IMigration migration)
+        => migration.GetType().Name;
 }

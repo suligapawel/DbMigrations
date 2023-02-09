@@ -34,21 +34,13 @@ public static class DependencyInjection
     public static async Task<IApplicationBuilder> UseDbMigrations(this IApplicationBuilder app)
     {
         var dbProvider = app.ApplicationServices.GetService<IDbProvider>();
-        var dbConnection = app.ApplicationServices.GetService<IDbConnection>();
         var migrations = app.ApplicationServices.GetServices<IMigration>();
-        await dbProvider.CreateMigrationsTableIfDoesNotExist();
 
+        await dbProvider.CreateMigrationsTableIfDoesNotExist();
+        
         foreach (var migration in migrations)
         {
-            var migrationName = migration.GetType().Name;
-
-            if (await dbProvider.MigrationExist(migrationName))
-            {
-                continue;
-            }
-
-            await dbConnection.ExecuteAsync(migration.UpScript());
-            await dbProvider.InsertMigrationInfo(migrationName);
+            await dbProvider.InsertMigrationIfDoesNotExist(migration);
         }
 
         return app;

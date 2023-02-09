@@ -2,6 +2,8 @@
 
 public interface IMigration
 {
-    string UpScript();
-    string DownScript();
+    DateTime CreatedAt { get; }
+    
+    string Up();
+    string Down();
 }
